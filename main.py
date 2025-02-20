@@ -147,7 +147,7 @@ class Launcher():
 		self.sidebar_y = screen_height  # Starts from bottom
 		self.sidebar_target_y = 0       # Final position (top)
 		self.sidebar_width = 100
-		self.sidebar_speed = 100
+		self.sidebar_speed = 40
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
 		glass_surface.fill((255, 255, 255, 10))
@@ -156,19 +156,16 @@ class Launcher():
 
 
 	def sidebar(self):
-
-		if self.show_all:
-		    # Move the sidebar up until it reaches target
+		if self.show_all:		    
 		    if self.sidebar_y > self.sidebar_target_y:
 		        self.sidebar_y -= self.sidebar_speed
 		        if self.sidebar_y < self.sidebar_target_y:
-		            self.sidebar_y = self.sidebar_target_y  # Stop at exact position
+		            self.sidebar_y = self.sidebar_target_y  
 		else:
-		    # Move the sidebar down when closing
 		    if self.sidebar_y < screen_height:
 		        self.sidebar_y += self.sidebar_speed
 		        if self.sidebar_y > screen_height:
-		            self.sidebar_y = screen_height  # Stop at exact position
+		            self.sidebar_y = screen_height  
 		
 
 	def run(self):
@@ -185,8 +182,6 @@ class Launcher():
 			if self.state == State.INTERSTELLAR_PIRATE:
 				background_group.draw(screen)
 				background_group.update()
-			
-				# pygame.draw.rect(screen, "black", [0, self.sidebar_y, self.sidebar_width, screen_height])
 				self.sidebar()
 				self.draw_glass_sidebar()
 					
