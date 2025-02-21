@@ -1,4 +1,5 @@
 import pygame
+import requests
 import json
 from enum import Enum,auto
 from pygame.locals import *
@@ -10,6 +11,18 @@ screen = pygame.display.set_mode((screen_width,screen_height))
 pygame.display.set_caption("Expo Launcher")
 clock = pygame.time.Clock()
 FPS = 60
+
+# importing the updater json 
+updater_json_url = "https://raw.githubusercontent.com/suvojit-routh/Expo-launcher/main/updater.json"
+try:
+    response = requests.get(updater_json_url)
+    response.raise_for_status()  
+    data = response.json()      
+except requests.exceptions.RequestException as e:
+    print(f"Error fetching data: {e}")
+    data = {}  
+
+print(data)
 
 class State(Enum):
 	INTERSTELLAR_PIRATE = auto()

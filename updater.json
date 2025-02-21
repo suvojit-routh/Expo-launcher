@@ -1,0 +1,14 @@
+{
+	"fruit delivery" : {
+		"version" : 1.0,
+		"download_url" : "",
+		"update_url" : "",
+		"file_name" : "Fruit Delivery.exe"
+	},
+	"interstellar_pirates" : {
+		"version" : 1.0,
+		"download_url" : "",
+		"update_url" : "",
+		"file_name" : "Interstellar Pirates.exe"
+	}
+}
