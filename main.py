@@ -130,12 +130,16 @@ class Picture_Button:
         action = False
 
         pos = pygame.mouse.get_pos()
+        gap = 2
         
         #check mouseover and clicked condition
         if self.rect.collidepoint(pos):
+            pygame.draw.rect(screen,"white",[self.x  - gap,self.y - gap,self.image.get_width() + gap * 2,self.image.get_height() + gap * 2],2,10)
             if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
                 self.clicked = True
                 action = True
+        else:
+        	pygame.draw.rect(screen,"black",[self.x  - gap,self.y - gap,self.image.get_width() + gap * 2,self.image.get_height() + gap * 2],2,10)
         if pygame.mouse.get_pressed()[0] == 0:
             self.clicked = False
 
@@ -155,18 +159,13 @@ class Background(pygame.sprite.Sprite):
 
 
     def update(self):
-        # Move the background image vertically
         self.pos_y += 10
-
-        # Draw the current background image at the current position
         screen.blit(self.image, (self.pos_x, self.pos_y))
 
-        # Check if the next image is partially visible on the top side
         next_pos_y = self.pos_y - screen_height
         if next_pos_y > -screen_height:
             screen.blit(self.image, (self.pos_x, next_pos_y))
 
-        # Check if the current image is off the screen, reset its position
         if self.pos_y >= screen_height:
             self.pos_y = 0
 
@@ -188,8 +187,13 @@ class Launcher():
         # icon list
 		self.icon_list = []
 		for i in range(3):
-			img = pygame.transform.smoothscale(pygame.image.load(f"assets/icons/{i}.png"),(100,100)).convert()
+			img = pygame.transform.smoothscale(pygame.image.load(f"assets/icons/{i}.png"),(100,100)).convert_alpha()
 			self.icon_list.append(img)
+		#loading bgs
+		self.bg_list = []
+		for i in range(1,3):
+			img = pygame.transform.smoothscale(pygame.image.load(f"assets/bg/{i}.png"),(screen_width,screen_height)).convert_alpha()
+			self.bg_list.append(img)
         # PICTURE BUTTONS
 		self.interstellar_pirate_btn = Picture_Button(screen,25,screen_height - 170,self.icon_list[0])
 		self.fruit_delivery_btn = Picture_Button(screen,25,screen_height - 300,self.icon_list[1])
@@ -201,7 +205,7 @@ class Launcher():
 		self.sidebar_speed = 40
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
-		glass_surface.fill((255, 255, 255, 10))
+		glass_surface.fill((255, 255, 255, 20))
 		pygame.draw.rect(glass_surface, (211, 211, 211, 120), (0, 0, self.sidebar_width, screen_height), 2) 
 		screen.blit(glass_surface, (0, self.sidebar_y))   
 
@@ -269,12 +273,12 @@ class Launcher():
 				self.draw_glass_sidebar()
 				self.sidebar_buttons()
 			elif self.state == State.FRUIT_DELIVERY:
-				screen.fill("black")
+				screen.blit(self.bg_list[0],(0,0))
 				self.sidebar()
 				self.draw_glass_sidebar()
 				self.sidebar_buttons()
 			else:
-				screen.fill("white")
+				screen.blit(self.bg_list[1],(0,0))
 				self.sidebar()
 				self.draw_glass_sidebar()
 				self.sidebar_buttons()
