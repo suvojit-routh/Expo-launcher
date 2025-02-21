@@ -5,10 +5,16 @@
 		"update_url" : "",
 		"file_name" : "Fruit Delivery.exe"
 	},
-	"interstellar_pirates" : {
+	"interstellar pirates" : {
 		"version" : 1.0,
 		"download_url" : "",
 		"update_url" : "",
 		"file_name" : "Interstellar Pirates.exe"
+	},
+	"headball football" : {
+		"version" : 1.0,
+		"download_url" : "",
+		"update_url" : "",
+		"file_name" : "Headball Football.exe"
 	}
 }
