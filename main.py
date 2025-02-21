@@ -13,7 +13,7 @@ FPS = 60
 
 class State(Enum):
 	INTERSTELLAR_PIRATE = auto()
-	FRUIT_DELIVER = auto()
+	FRUIT_DELIVERY = auto()
 	HEADBALL_FOOTBALL = auto()
 
 
@@ -99,7 +99,49 @@ class Button:
                 pygame.draw.rect(screen,'white',[self.right_x - self.gap,self.right_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],2,4)
                 screen.blit(self.hover_text,(self.right_x,self.right_y+2))
 
+# PICTURE BUTTONS
+class Picture_Button:
+    def __init__(self,surface,x,y,image):
+        self.image = image
+        self.x = x 
+        self.y = y
+        self.rect = self.image.get_rect(topleft = (self.x,self.y))
+        self.clicked = False
+        self.surface = surface
+        self.font = pygame.font.Font('assets/font/font-1.ttf',20)
 
+    def hover(self,text,color):
+        self.text = text
+        self.color = color
+        self.text_surf = self.font.render(self.text,True,self.color)
+        self.text_width = self.text_surf.get_width()
+        self.text_height = self.text_surf.get_height()
+        self.gap = 4
+        self.adjustment = 50
+        pos = pygame.mouse.get_pos()
+        if self.rect.collidepoint(pos):
+            pygame.draw.rect(screen,"white",[(self.x + self.image.get_width()) + self.adjustment - self.gap,self.y + (self.image.get_height()/2) - self.gap,self.text_width + self.gap * 2,self.text_height + self.gap * 2],0,8)
+            pygame.draw.rect(screen,"black",[(self.x + self.image.get_width()) + self.adjustment - self.gap,self.y + (self.image.get_height()/2) - self.gap,self.text_width + self.gap * 2,self.text_height + self.gap * 2],2,8)
+            screen.blit(self.text_surf,((self.x + self.image.get_width()) + self.adjustment,self.y + (self.image.get_height()/2)))
+
+    
+        
+    def draw(self):
+        action = False
+
+        pos = pygame.mouse.get_pos()
+        
+        #check mouseover and clicked condition
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                action = True
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+
+        self.surface.blit(self.image,(self.rect.x ,self.rect.y ))
+        return action
 # BACKGROUND CLASS
 class Background(pygame.sprite.Sprite):
     def __init__(self):
@@ -139,14 +181,23 @@ class Launcher():
 	def __init__(self):
 		self.state = State.INTERSTELLAR_PIRATE
 		self.running = True 
-		self.games_btn = Button(screen,50,50,25,screen_height - 60,"::","gray","white","black",60,4)
-		self.close_button = Button(screen,50,50,25,10,"X","gray","white","black",40)
+		self.games_btn = Button(screen,50,50,50,screen_height - 60,"::","gray","white","black",60,4)
+		self.close_button = Button(screen,50,50,50,10,"X","gray","white","black",40)
 		self.show_all = False
-
+		self.transition = False
+        # icon list
+		self.icon_list = []
+		for i in range(3):
+			img = pygame.transform.smoothscale(pygame.image.load(f"assets/icons/{i}.png"),(100,100)).convert()
+			self.icon_list.append(img)
+        # PICTURE BUTTONS
+		self.interstellar_pirate_btn = Picture_Button(screen,25,screen_height - 170,self.icon_list[0])
+		self.fruit_delivery_btn = Picture_Button(screen,25,screen_height - 300,self.icon_list[1])
+		self.headball_football_btn = Picture_Button(screen,25,screen_height - 430,self.icon_list[2])
 		#SIDEBAR
-		self.sidebar_y = screen_height  # Starts from bottom
-		self.sidebar_target_y = 0       # Final position (top)
-		self.sidebar_width = 100
+		self.sidebar_y = screen_height  
+		self.sidebar_target_y = 0       
+		self.sidebar_width = 150
 		self.sidebar_speed = 40
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
@@ -155,17 +206,49 @@ class Launcher():
 		screen.blit(glass_surface, (0, self.sidebar_y))   
 
 
+	def sidebar_buttons(self):
+		if not self.show_all:
+			if not self.sidebar_y > screen_height - 170:
+				if self.interstellar_pirate_btn.draw():
+					self.state = State.INTERSTELLAR_PIRATE
+				self.interstellar_pirate_btn.hover("Interstellar Pirate","black")
+			if not self.sidebar_y > screen_height - 300:		
+				if self.fruit_delivery_btn.draw():
+					self.state = State.FRUIT_DELIVERY
+				self.fruit_delivery_btn.hover("Fruit Delivery","black")
+			if not self.sidebar_y > screen_height - 430:
+				if self.headball_football_btn.draw():
+					self.state = State.HEADBALL_FOOTBALL
+				self.headball_football_btn.hover("Headball Football","black")
+		if self.show_all:
+			if self.sidebar_y < screen_height - 170:
+				if self.interstellar_pirate_btn.draw():
+					self.state = State.INTERSTELLAR_PIRATE
+				self.interstellar_pirate_btn.hover("Interstellar Pirate","black")
+			if self.sidebar_y < screen_height - 300:		
+				if self.fruit_delivery_btn.draw():
+					self.state = State.FRUIT_DELIVERY
+				self.fruit_delivery_btn.hover("Fruit Delivery","black")
+			if self.sidebar_y < screen_height - 430:
+				if self.headball_football_btn.draw():
+					self.state = State.HEADBALL_FOOTBALL
+				self.headball_football_btn.hover("Headball Football","black")
+			
+
 	def sidebar(self):
 		if self.show_all:		    
 		    if self.sidebar_y > self.sidebar_target_y:
 		        self.sidebar_y -= self.sidebar_speed
 		        if self.sidebar_y < self.sidebar_target_y:
-		            self.sidebar_y = self.sidebar_target_y  
+		            self.sidebar_y = self.sidebar_target_y
+		            self.transition = True  
+		            
 		else:
 		    if self.sidebar_y < screen_height:
 		        self.sidebar_y += self.sidebar_speed
 		        if self.sidebar_y > screen_height:
 		            self.sidebar_y = screen_height  
+		            self.transition =  False
 		
 
 	def run(self):
@@ -184,13 +267,24 @@ class Launcher():
 				background_group.update()
 				self.sidebar()
 				self.draw_glass_sidebar()
+				self.sidebar_buttons()
+			elif self.state == State.FRUIT_DELIVERY:
+				screen.fill("black")
+				self.sidebar()
+				self.draw_glass_sidebar()
+				self.sidebar_buttons()
+			else:
+				screen.fill("white")
+				self.sidebar()
+				self.draw_glass_sidebar()
+				self.sidebar_buttons()
+
 					
 
-			if not self.show_all:
+			if not self.show_all and self.transition==False:
 				if self.games_btn.draw():
 					self.show_all = True
-			else:
-				
+			if self.show_all and self.transition:				
 				if self.close_button.draw():
 					self.show_all = False
 
