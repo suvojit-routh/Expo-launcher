@@ -1,9 +1,49 @@
-import pygame
+import pygame,os
 import requests
 import json
+import threading
+import tkinter as tk
+import subprocess
+from tkinter import filedialog
+from tkinter import messagebox
 from enum import Enum,auto
 from pygame.locals import *
 pygame.init()
+
+# LAUNCHER DATA 
+if not os.path.exists("data.json"):
+    # Default data to write in the JSON file
+    default_data = {"fruit delivery" : {
+    				"version" : 0,
+    				"path" : "",
+    				"update_path" : "",
+    				"uninstall_path" : "",
+    				"downloaded" : False
+    },
+    "interstellar pirates" : {
+    				"version" : 0,
+    				"path" : "",
+    				"update_path" : "",
+    				"uninstall_path" : "",
+    				"downloaded" : False
+    },
+    "headball football" : {
+    				"version" : 0,
+    				"path" : "",
+    				"update_path" : "",
+    				"uninstall_path" : "",
+    				"downloaded" : False
+    }
+    }
+    with open("data.json", 'w') as file:
+        json.dump(default_data, file, indent=4)
+# READ THE JSON DATA
+with open("data.json",'r') as file:
+    app_data = json.load(file)
+
+def save_data():
+    with open("data.json",'w') as file:
+        json.dump(app_data,file,indent = 4)
 
 screen_width = 1366
 screen_height = 768
@@ -22,7 +62,7 @@ except requests.exceptions.RequestException as e:
     print(f"Error fetching data: {e}")
     data = {}  
 
-print(data)
+
 
 class State(Enum):
 	INTERSTELLAR_PIRATE = auto()
@@ -189,6 +229,81 @@ background_group = pygame.sprite.Group()
 background = Background()
 background_group.add(background)
 
+def select_folder():
+    root = tk.Tk()
+    root.withdraw()  # Hide the main Tkinter window
+    folder_path = filedialog.askdirectory(title="Select Folder to Download")
+    return folder_path
+
+def download_and_extract_zip(url, extract_to, progress_callback=None,extraction_callback=None, max_retries=20):
+    retries = 0
+    while retries < max_retries:
+        try:
+            # print(f"Attempt {retries + 1}/{max_retries}: Downloading {url}")
+            response = requests.get(url, stream=True, timeout=10)
+            
+            if response.status_code == 200:
+                total_size = int(response.headers.get('content-length', 0))
+                downloaded = 0
+
+                with open('temp.zip', 'wb') as f:
+                    for data in response.iter_content(chunk_size=100000):
+                        downloaded += len(data)
+                        f.write(data)
+
+                        # Update progress
+                        if progress_callback:
+                            progress = (downloaded / total_size) * 100 if total_size > 0 else 0
+                            progress_callback(progress)
+
+                        # Ensure Pygame events are processed
+                            pygame.display.flip()
+
+                # Extract the downloaded zip file
+                with zipfile.ZipFile('temp.zip', 'r') as zip_ref:
+                    file_list = zip_ref.infolist()
+                    total_files = len(file_list)
+                    
+                    for index, file in enumerate(file_list, start=1):
+                        zip_ref.extract(file, extract_to)
+                        
+                        # Update extraction progress
+                        if extraction_callback:
+                            extraction_progress = (index / total_files) * 100
+                            extraction_callback(extraction_progress)
+                        
+                        # Ensure Pygame events are processed
+                            pygame.display.flip()
+
+                os.remove('temp.zip')  # Clean up temp file
+                print("Download and extraction complete!")
+                return  # Exit after successful download
+            else:
+                print(f"Failed to download the file: HTTP {response.status_code}")
+                break
+
+        except requests.exceptions.ConnectionError as e:
+            retries += 1
+            print(f"Connection lost, retrying ({retries}/{max_retries})...")
+            if retries >= max_retries:
+                print("Max retries reached, aborting download.")
+                raise e
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break
+
+def launch_game(game_path):
+    try:
+        original_dir = os.getcwd()  # Save current working directory
+        game_path_abs = os.path.abspath(game_path)
+        game_dir = os.path.dirname(game_path_abs)
+        os.chdir(game_dir)  # Change to game's directory
+        subprocess.Popen([game_path_abs])  # Launch the .bat file
+    except Exception as e:
+        print(f"Failed to launch game: {e}")
+    finally:
+        os.chdir(original_dir)  # Restore original directory
+
 class Launcher():
 	def __init__(self):
 		self.state = State.INTERSTELLAR_PIRATE
@@ -216,6 +331,16 @@ class Launcher():
 		self.sidebar_target_y = 0       
 		self.sidebar_width = 150
 		self.sidebar_speed = 40
+		# RECT BUTTONS
+		self.download_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Download","white","#00ff79","black")
+		#DOWNLOAD VARS
+		self.selected_folder = None
+		self.download_progress = 0 
+		self.downloaded = False
+		self.downloading = False
+		self.extraction_progress = 0
+		self.extracted = False
+		self.extracting = False
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
 		glass_surface.fill((255, 255, 255, 20))
@@ -266,7 +391,28 @@ class Launcher():
 		        if self.sidebar_y > screen_height:
 		            self.sidebar_y = screen_height  
 		            self.transition =  False
-		
+
+	def update_progress(self, progress):
+		self.download_progress = progress
+		if int(self.download_progress) >= 100:
+			self.downloaded = True
+			self.download_progress = 0
+			self.extracting = True
+	def update_extraction(self, extract):
+		self.extraction_progress = extract
+		if int(self.extraction_progress) >= 100:
+			self.extracted = True
+			self.extraction_progress = 0
+
+	def download_func(self,data_tree):
+		if app_data[data_tree]["downloaded"] == False and self.downloading == False:
+			if self.download_button.draw():
+				self.selected_folder = select_folder()
+				if self.selected_folder:
+					self.download_thread = threading.Thread(target=download_and_extract_zip, args=(data[data_tree]["url"], self.selected_folder, self.update_progress,self.update_extraction))
+					self.download_thread.start()
+					self.downloading = True
+			
 
 	def run(self):
 		while self.running:
@@ -285,16 +431,19 @@ class Launcher():
 				self.sidebar()
 				self.draw_glass_sidebar()
 				self.sidebar_buttons()
+				self.download_func("interstellar pirates")
 			elif self.state == State.FRUIT_DELIVERY:
 				screen.blit(self.bg_list[0],(0,0))
 				self.sidebar()
 				self.draw_glass_sidebar()
 				self.sidebar_buttons()
-			else:
+				self.download_func("fruit delivery")
+			elif self.state == State.HEADBALL_FOOTBALL:
 				screen.blit(self.bg_list[1],(0,0))
 				self.sidebar()
 				self.draw_glass_sidebar()
 				self.sidebar_buttons()
+				self.download_func("headball football")
 
 					
 
