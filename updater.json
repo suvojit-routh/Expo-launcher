@@ -3,18 +3,21 @@
 		"version" : 1.0,
 		"download_url" : "https://www.dropbox.com/scl/fi/57j0m5g8ejhcy0s8cg8jb/Fruit-Delivery.zip?rlkey=0ou4651mmlnfycuo0j2emaemp&dl=1",
 		"update_url" : "",
-		"file_name" : "Fruit Delivery.exe"
+		"file_name" : "Fruit Delivery.exe",
+		"folder_name" : "Fruit Delivery"
 	},
 	"interstellar pirates" : {
 		"version" : 1.0,
 		"download_url" : "",
 		"update_url" : "",
-		"file_name" : "Interstellar Pirates.exe"
+		"file_name" : "Interstellar Pirates.exe",
+		"folder_name" : "Interstellar Pirates"
 	},
 	"headball football" : {
 		"version" : 1.0,
 		"download_url" : "",
 		"update_url" : "",
-		"file_name" : "Headball Football.exe"
+		"file_name" : "Headball Football.exe",
+		"folder_name" : "Headball Football"
 	}
 }

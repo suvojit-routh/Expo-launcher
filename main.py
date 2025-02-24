@@ -426,7 +426,7 @@ class Launcher():
 
 			# Draw background rectangle
 			pygame.draw.rect(screen, 'white', bg_rect, 0, 8)
-			pygame.draw.rect(screen, data["downloading_progreesbar_color"], main_rect, 0, 8)
+			pygame.draw.rect(screen, "cyan", main_rect, 0, 8)
 			pygame.draw.rect(screen, 'black', bg_rect, 2, 8)
 
 			# Render and position the downloading text
@@ -448,7 +448,7 @@ class Launcher():
 
 			# Draw background rectangle
 			pygame.draw.rect(screen, 'white', bg_rect, 0, 8)
-			pygame.draw.rect(screen, data["extracting_progressbar_color"], main_rect, 0, 8)
+			pygame.draw.rect(screen, "red", main_rect, 0, 8)
 			pygame.draw.rect(screen, 'black', bg_rect, 2, 8)
 			self.extraction_text = self.font2.render(f"Extracting - {self.extraction_progress:.2f}%", True, 'white')
 			self.text_x = (screen.get_width() - self.extraction_text.get_width()) // 2
@@ -457,12 +457,13 @@ class Launcher():
 			pygame.display.flip()
 
 		if self.downloaded and self.extracted:
-			app_data["path"] = f"{self.selected_folder}/Hellfire/Fiesta.exe"
-			app_data["downloaded"] = True
-			app_data["uninstall_path"] = f"{self.selected_folder}/Hellfire"
-			app_data["update_path"] = self.selected_folder
-			app_data["version"] = data["version"]
-			app_data["patch"] = data["patch"]
+			# app_data["path"] = f"{self.selected_folder}/Hellfire/Fiesta.exe"
+			# app_data["downloaded"] = True
+			# app_data["uninstall_path"] = f"{self.selected_folder}/Hellfire"
+			# app_data["update_path"] = self.selected_folder
+			# app_data["version"] = data["version"]
+			# app_data["patch"] = data["patch"]
+            # app_data[data_tree]["path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}/{data[data_tree]['file_name']}"
 			save_data()
 
 			self.downloaded = False 
@@ -483,6 +484,7 @@ class Launcher():
 				elif event.type == pygame.KEYDOWN:
 					if event.key == K_ESCAPE:
 						self.running = False
+						save_data()
 
 
 				
