@@ -2,6 +2,7 @@ import pygame,os
 import requests
 import json
 import threading
+import zipfile
 import tkinter as tk
 import subprocess
 from tkinter import filedialog
@@ -312,6 +313,7 @@ class Launcher():
 		self.close_button = Button(screen,50,50,50,10,"X","gray","white","black",40)
 		self.show_all = False
 		self.transition = False
+		self.font2 = pygame.font.Font("assets/font/subatomic.ttf", 30)
         # icon list
 		self.icon_list = []
 		for i in range(3):
@@ -333,6 +335,8 @@ class Launcher():
 		self.sidebar_speed = 40
 		# RECT BUTTONS
 		self.download_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Download","white","#00ff79","black")
+		self.launch_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Launch","white","#00ff79","black")
+		self.update_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Update","white","#00ff79","black")
 		#DOWNLOAD VARS
 		self.selected_folder = None
 		self.download_progress = 0 
@@ -463,7 +467,11 @@ class Launcher():
 			# app_data["update_path"] = self.selected_folder
 			# app_data["version"] = data["version"]
 			# app_data["patch"] = data["patch"]
-            # app_data[data_tree]["path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}/{data[data_tree]['file_name']}"
+			app_data[data_tree]["downloaded"] = True
+			app_data[data_tree]["path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}/{data[data_tree]['file_name']}"
+			app_data[data_tree]["uninstall_path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}"
+			app_data[data_tree]["update_path"] = self.selected_folder
+			app_data[data_tree]["version"] = data[data_tree]["version"]
 			save_data()
 
 			self.downloaded = False 
@@ -473,8 +481,36 @@ class Launcher():
 			self.selected_folder = None
 
 
+	def launch_func(self,data_tree):
+		if app_data[data_tree]["downloaded"] and app_data[data_tree]["version"] == data[data_tree]["version"]:
+			if self.launch_button.draw():
+				launch_game(app_data[data_tree]["path"])
+	def update_func(self,data_tree):
+		if app_data[data_tree]["downloaded"] == True and app_data[data_tree]["version"] != data[data_tree]["version"] and self.downloading == False:
+			if self.update_button.draw():
+				pass
 
-			
+	
+	def reset_data(self,data_tree):
+		app_data[data_tree]["downloaded"] = False
+		app_data[data_tree]["path"] = ""
+		app_data[data_tree]["uninstall_path"] = ""
+		app_data[data_tree]["update_path"] = 	""
+		app_data[data_tree]["version"] = 0
+
+	def check_if_game_exists(self,data_tree):
+		path = app_data[data_tree]["uninstall_path"]
+		if not os.path.exists(path):
+			self.reset_data(data_tree)
+
+	def template(self,data_tree):
+		self.sidebar()
+		self.draw_glass_sidebar()
+		self.sidebar_buttons()
+		self.download_func(data_tree)
+		self.update_func(data_tree)
+		self.launch_func(data_tree)
+		self.check_if_game_exists(data_tree)
 
 	def run(self):
 		while self.running:
@@ -490,23 +526,16 @@ class Launcher():
 				
 			if self.state == State.INTERSTELLAR_PIRATE:
 				background_group.draw(screen)
-				background_group.update()
-				self.sidebar()
-				self.draw_glass_sidebar()
-				self.sidebar_buttons()
-				self.download_func("interstellar pirates")
+				background_group.update()				
+				self.template("interstellar pirates")
 			elif self.state == State.FRUIT_DELIVERY:
 				screen.blit(self.bg_list[0],(0,0))
-				self.sidebar()
-				self.draw_glass_sidebar()
-				self.sidebar_buttons()
-				self.download_func("fruit delivery")
+				self.template("fruit delivery")
+
 			elif self.state == State.HEADBALL_FOOTBALL:
 				screen.blit(self.bg_list[1],(0,0))
-				self.sidebar()
-				self.draw_glass_sidebar()
-				self.sidebar_buttons()
-				self.download_func("headball football")
+				self.template("headball football")
+
 
 					
 
