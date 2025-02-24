@@ -70,7 +70,6 @@ class State(Enum):
 	FRUIT_DELIVERY = auto()
 	HEADBALL_FOOTBALL = auto()
 
-
 # BUTTONS CLASS
 mouse_released = True
 
@@ -488,7 +487,10 @@ class Launcher():
 	def update_func(self,data_tree):
 		if app_data[data_tree]["downloaded"] == True and app_data[data_tree]["version"] != data[data_tree]["version"] and self.downloading == False:
 			if self.update_button.draw():
-				pass
+				self.update_thread = threading.Thread(target=download_and_extract_zip, args=(data[data_tree]["update_url"],app_data[data_tree]["update_path"], self.update_progress,self.update_extraction))
+				self.update_thread.start()
+				self.downloading = True
+				self.selected_folder = app_data[data_tree]["update_path"]
 
 	
 	def reset_data(self,data_tree):

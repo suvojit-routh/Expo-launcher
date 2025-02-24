@@ -1,9 +1,9 @@
 {
     "fruit delivery": {
-        "version": 0.9,
-        "path": "D:/Expo launcher/Downloads/Fruit Delivery/Fruit Delivery.exe",
-        "update_path": "D:/Expo launcher/Downloads",
-        "uninstall_path": "D:/Expo launcher/Downloads/Fruit Delivery",
+        "version": 1.0,
+        "path": "D:/Testing downloads/Fruit Delivery/Fruit Delivery.exe",
+        "update_path": "D:/Testing downloads",
+        "uninstall_path": "D:/Testing downloads/Fruit Delivery",
         "downloaded": true
     },
     "interstellar pirates": {
