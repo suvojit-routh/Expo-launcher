@@ -409,9 +409,70 @@ class Launcher():
 			if self.download_button.draw():
 				self.selected_folder = select_folder()
 				if self.selected_folder:
-					self.download_thread = threading.Thread(target=download_and_extract_zip, args=(data[data_tree]["url"], self.selected_folder, self.update_progress,self.update_extraction))
+					self.download_thread = threading.Thread(target=download_and_extract_zip, args=(data[data_tree]["download_url"], self.selected_folder, self.update_progress,self.update_extraction))
 					self.download_thread.start()
 					self.downloading = True
+
+		# Draw the download progress bar if downloading
+		if self.download_progress > 0:
+			rect_width, rect_height = 600, 50
+			pos_x = (screen.get_width() - rect_width) // 2
+			pos_y = screen.get_height() - (rect_height + 20)
+			bg_rect = pygame.Rect((pos_x, pos_y), (rect_width, rect_height))
+
+			# Ensure main_rect has a minimum width for the border radius
+			progress_width = max(self.download_progress * 6, 20)  # Set minimum width for proper border radius rendering
+			main_rect = pygame.Rect((pos_x, pos_y), (progress_width, rect_height))
+
+			# Draw background rectangle
+			pygame.draw.rect(screen, 'white', bg_rect, 0, 8)
+			pygame.draw.rect(screen, data["downloading_progreesbar_color"], main_rect, 0, 8)
+			pygame.draw.rect(screen, 'black', bg_rect, 2, 8)
+
+			# Render and position the downloading text
+			self.downloading_text = self.font2.render(f"Downloading - {self.download_progress:.2f}%", True, 'white')
+			self.text_x = (screen.get_width() - self.downloading_text.get_width()) // 2
+			self.text_y = pos_y - (self.downloading_text.get_height() + 10)
+			screen.blit(self.downloading_text, (self.text_x, self.text_y))
+
+
+		if self.extraction_progress > 0:
+			rect_width, rect_height = 600, 50
+			pos_x = (screen.get_width() - rect_width) // 2
+			pos_y = screen.get_height() - (rect_height + 20)
+			bg_rect = pygame.Rect((pos_x, pos_y), (rect_width, rect_height))
+
+			# Ensure main_rect has a minimum width for the border radius
+			progress_width = max(self.extraction_progress * 6, 20)  # Set minimum width for proper border radius rendering
+			main_rect = pygame.Rect((pos_x, pos_y), (progress_width, rect_height))
+
+			# Draw background rectangle
+			pygame.draw.rect(screen, 'white', bg_rect, 0, 8)
+			pygame.draw.rect(screen, data["extracting_progressbar_color"], main_rect, 0, 8)
+			pygame.draw.rect(screen, 'black', bg_rect, 2, 8)
+			self.extraction_text = self.font2.render(f"Extracting - {self.extraction_progress:.2f}%", True, 'white')
+			self.text_x = (screen.get_width() - self.extraction_text.get_width()) // 2
+			self.text_y = pos_y - (self.extraction_text.get_height() + 10)
+			screen.blit(self.extraction_text, (self.text_x, self.text_y))
+			pygame.display.flip()
+
+		if self.downloaded and self.extracted:
+			app_data["path"] = f"{self.selected_folder}/Hellfire/Fiesta.exe"
+			app_data["downloaded"] = True
+			app_data["uninstall_path"] = f"{self.selected_folder}/Hellfire"
+			app_data["update_path"] = self.selected_folder
+			app_data["version"] = data["version"]
+			app_data["patch"] = data["patch"]
+			save_data()
+
+			self.downloaded = False 
+			self.downloading = False
+			self.extracted = False
+			self.extracting = False
+			self.selected_folder = None
+
+
+
 			
 
 	def run(self):
