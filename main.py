@@ -46,8 +46,9 @@ def save_data():
     with open("data.json",'w') as file:
         json.dump(app_data,file,indent = 4)
 
-screen_width = 1366
-screen_height = 768
+info = pygame.display.Info()  
+screen_width = info.current_w
+screen_height = info.current_h
 screen = pygame.display.set_mode((screen_width,screen_height))
 pygame.display.set_caption("Expo Launcher")
 clock = pygame.time.Clock()
@@ -69,6 +70,7 @@ class State(Enum):
 	INTERSTELLAR_PIRATE = auto()
 	FRUIT_DELIVERY = auto()
 	HEADBALL_FOOTBALL = auto()
+	MANAGE = auto()
 
 # BUTTONS CLASS
 mouse_released = True
@@ -120,7 +122,7 @@ class Button:
             pygame.draw.rect(self.display, self.rect_color, self.image, border_radius=radius)
         
 
-        pygame.draw.rect(self.display, self.border_color, self.image, width=1, border_radius=radius)
+        pygame.draw.rect(self.display, self.border_color, self.image, width=2, border_radius=radius)
 
         text = self.font.render(self.text, True, self.text_color)
         text_pos_x = self.pos_x + (self.width - text.get_width()) // 2
@@ -138,6 +140,8 @@ class Button:
         self.below_y = self.pos_y + (self.height + adjustment)
         self.right_x = self.pos_x + (self.width + adjustment)
         self.right_y = self.pos_y + (self.height - self.text_height)//2
+        self.left_x = self.pos_x - (self.text_width + adjustment)
+        self.left_y = self.pos_y + (self.height - self.text_height)//2
         self.gap = 5
         mouse_pos = pygame.mouse.get_pos()
         
@@ -146,11 +150,16 @@ class Button:
             if self.side == 'below':
                 pygame.draw.rect(screen,'black',[self.below_x - self.gap,self.below_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],0,4)
                 pygame.draw.rect(screen,'white',[self.below_x - self.gap,self.below_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],2,4)
-                screen.blit(self.hover_text,(self.below_x,self.below_y+2))
+                screen.blit(self.hover_text,(self.below_x,self.below_y))
             if self.side == 'right':
                 pygame.draw.rect(screen,'black',[self.right_x - self.gap,self.right_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],0,4)
                 pygame.draw.rect(screen,'white',[self.right_x - self.gap,self.right_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],2,4)
-                screen.blit(self.hover_text,(self.right_x,self.right_y+2))
+                screen.blit(self.hover_text,(self.right_x,self.right_y))
+            if self.side == "left":
+                pygame.draw.rect(screen,'black',[self.left_x - self.gap,self.left_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],0,4)
+                pygame.draw.rect(screen,'white',[self.left_x - self.gap,self.left_y - self.gap, self.text_width + self.gap*2,self.text_height + self.gap*2],2,4)
+                screen.blit(self.hover_text,(self.left_x,self.left_y))
+
 
 # PICTURE BUTTONS
 class Picture_Button:
@@ -173,8 +182,8 @@ class Picture_Button:
         self.adjustment = 50
         pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(pos):
-            pygame.draw.rect(screen,"white",[(self.x + self.image.get_width()) + self.adjustment - self.gap,self.y + (self.image.get_height()/2) - self.gap,self.text_width + self.gap * 2,self.text_height + self.gap * 2],0,8)
-            pygame.draw.rect(screen,"black",[(self.x + self.image.get_width()) + self.adjustment - self.gap,self.y + (self.image.get_height()/2) - self.gap,self.text_width + self.gap * 2,self.text_height + self.gap * 2],2,8)
+            pygame.draw.rect(screen,"black",[(self.x + self.image.get_width()) + self.adjustment - self.gap,self.y + (self.image.get_height()/2) - self.gap,self.text_width + self.gap * 2,self.text_height + self.gap * 2],0,4)
+            pygame.draw.rect(screen,"white",[(self.x + self.image.get_width()) + self.adjustment - self.gap,self.y + (self.image.get_height()/2) - self.gap,self.text_width + self.gap * 2,self.text_height + self.gap * 2],2,4)
             screen.blit(self.text_surf,((self.x + self.image.get_width()) + self.adjustment,self.y + (self.image.get_height()/2)))
 
     
@@ -241,7 +250,6 @@ def download_and_extract_zip(url, extract_to, progress_callback=None,extraction_
         try:
             # print(f"Attempt {retries + 1}/{max_retries}: Downloading {url}")
             response = requests.get(url, stream=True, timeout=10)
-            
             if response.status_code == 200:
                 total_size = int(response.headers.get('content-length', 0))
                 downloaded = 0
@@ -309,7 +317,7 @@ class Launcher():
 		self.state = State.INTERSTELLAR_PIRATE
 		self.running = True 
 		self.games_btn = Button(screen,50,50,50,screen_height - 60,"::","gray","white","black",60,4)
-		self.close_button = Button(screen,50,50,50,10,"X","gray","white","black",40)
+		self.close_button = Button(screen,50,50,50,10,"x","gray","white","black",40)
 		self.show_all = False
 		self.transition = False
 		self.font2 = pygame.font.Font("assets/font/subatomic.ttf", 30)
@@ -336,6 +344,9 @@ class Launcher():
 		self.download_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Download","white","#00ff79","black")
 		self.launch_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Launch","white","#00ff79","black")
 		self.update_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Update","white","#00ff79","black")
+		self.quit_button = Button(screen,50,50,screen_width - 60 ,10,"x","white","#00ff79","black")
+		self.settings_button = Button(screen,50,50,screen_width - 60 ,110,"s","white","#00ff79","black")
+
 		#DOWNLOAD VARS
 		self.selected_folder = None
 		self.download_progress = 0 
@@ -344,6 +355,8 @@ class Launcher():
 		self.extraction_progress = 0
 		self.extracted = False
 		self.extracting = False
+	def header(self,text):
+		pass
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
 		glass_surface.fill((255, 255, 255, 20))
@@ -356,28 +369,37 @@ class Launcher():
 			if not self.sidebar_y > screen_height - 170:
 				if self.interstellar_pirate_btn.draw():
 					self.state = State.INTERSTELLAR_PIRATE
-				self.interstellar_pirate_btn.hover("Interstellar Pirate","black")
+				self.interstellar_pirate_btn.hover("Interstellar Pirate","white")
 			if not self.sidebar_y > screen_height - 300:		
 				if self.fruit_delivery_btn.draw():
 					self.state = State.FRUIT_DELIVERY
-				self.fruit_delivery_btn.hover("Fruit Delivery","black")
+				self.fruit_delivery_btn.hover("Fruit Delivery","white")
 			if not self.sidebar_y > screen_height - 430:
 				if self.headball_football_btn.draw():
 					self.state = State.HEADBALL_FOOTBALL
-				self.headball_football_btn.hover("Headball Football","black")
+				self.headball_football_btn.hover("Headball Football","white")
 		if self.show_all:
 			if self.sidebar_y < screen_height - 170:
 				if self.interstellar_pirate_btn.draw():
 					self.state = State.INTERSTELLAR_PIRATE
-				self.interstellar_pirate_btn.hover("Interstellar Pirate","black")
+				self.interstellar_pirate_btn.hover("Interstellar Pirate","white")
 			if self.sidebar_y < screen_height - 300:		
 				if self.fruit_delivery_btn.draw():
 					self.state = State.FRUIT_DELIVERY
-				self.fruit_delivery_btn.hover("Fruit Delivery","black")
+				self.fruit_delivery_btn.hover("Fruit Delivery","white")
 			if self.sidebar_y < screen_height - 430:
 				if self.headball_football_btn.draw():
 					self.state = State.HEADBALL_FOOTBALL
-				self.headball_football_btn.hover("Headball Football","black")
+				self.headball_football_btn.hover("Headball Football","white")
+
+		if self.quit_button.draw():
+			save_data()
+			self.running = False
+		self.quit_button.hover("Quit","left",20)
+		if self.settings_button.draw():
+			pass
+		self.settings_button.hover("Settings","left",20)
+
 			
 
 	def sidebar(self):
@@ -460,12 +482,6 @@ class Launcher():
 			pygame.display.flip()
 
 		if self.downloaded and self.extracted:
-			# app_data["path"] = f"{self.selected_folder}/Hellfire/Fiesta.exe"
-			# app_data["downloaded"] = True
-			# app_data["uninstall_path"] = f"{self.selected_folder}/Hellfire"
-			# app_data["update_path"] = self.selected_folder
-			# app_data["version"] = data["version"]
-			# app_data["patch"] = data["patch"]
 			app_data[data_tree]["downloaded"] = True
 			app_data[data_tree]["path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}/{data[data_tree]['file_name']}"
 			app_data[data_tree]["uninstall_path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}"
@@ -544,9 +560,11 @@ class Launcher():
 			if not self.show_all and self.transition==False:
 				if self.games_btn.draw():
 					self.show_all = True
+				self.games_btn.hover("All Games","right",20)
 			if self.show_all and self.transition:				
 				if self.close_button.draw():
 					self.show_all = False
+				self.close_button.hover("Close Menu","right",20)
 
 
 
