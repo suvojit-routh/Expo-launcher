@@ -9,6 +9,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from enum import Enum,auto
 from pygame.locals import *
+from time import sleep
 pygame.init()
 
 # LAUNCHER DATA 
@@ -312,6 +313,12 @@ def launch_game(game_path):
     finally:
         os.chdir(original_dir)  # Restore original directory
 
+def open_file_explorer(path):
+    try:
+        subprocess.run(['explorer', path])
+    except Exception as e:
+        print(f"Failed to open directory: {e}")
+
 class Launcher():
 	def __init__(self):
 		self.state = State.INTERSTELLAR_PIRATE
@@ -320,7 +327,7 @@ class Launcher():
 		self.close_button = Button(screen,50,50,50,10,"x","gray","white","black",40)
 		self.show_all = False
 		self.transition = False
-		self.font2 = pygame.font.Font("assets/font/subatomic.ttf", 30)
+		self.font2 = pygame.font.Font("assets/font/copperplate.ttf", 30)
         # icon list
 		self.icon_list = []
 		for i in range(3):
@@ -355,8 +362,18 @@ class Launcher():
 		self.extraction_progress = 0
 		self.extracted = False
 		self.extracting = False
-	def header(self,text):
-		pass
+	def header(self,data_tree):
+		header_font = pygame.font.Font("assets/font/Logo.ttf", 18)
+		header_text = header_font.render(f"{data_tree.replace(" ","    ")}",True,"black")
+		header_text_width = header_text.get_width()
+		header_text_height = header_text.get_height()
+		header_pos_x = (screen_width - header_text_width)//2
+		header_pos_y = 20
+		gap = 10
+		pygame.draw.rect(screen,"white",[header_pos_x - gap,header_pos_y -gap,header_text_width + gap*2,header_text_height+gap*2],0,4)
+		pygame.draw.rect(screen,"black",[header_pos_x - gap,header_pos_y -gap,header_text_width + gap*2,header_text_height+gap*2],2,4)
+		screen.blit(header_text,(header_pos_x,header_pos_y))
+
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
 		glass_surface.fill((255, 255, 255, 20))
@@ -397,7 +414,7 @@ class Launcher():
 			self.running = False
 		self.quit_button.hover("Quit","left",20)
 		if self.settings_button.draw():
-			pass
+			self.state = State.MANAGE
 		self.settings_button.hover("Settings","left",20)
 
 			
@@ -423,11 +440,13 @@ class Launcher():
 			self.downloaded = True
 			self.download_progress = 0
 			self.extracting = True
+		sleep(0.05)
 	def update_extraction(self, extract):
 		self.extraction_progress = extract
 		if int(self.extraction_progress) >= 100:
 			self.extracted = True
 			self.extraction_progress = 0
+		sleep(0.05)
 
 	def download_func(self,data_tree):
 		if app_data[data_tree]["downloaded"] == False and self.downloading == False:
@@ -435,6 +454,7 @@ class Launcher():
 				self.selected_folder = select_folder()
 				if self.selected_folder:
 					self.download_thread = threading.Thread(target=download_and_extract_zip, args=(data[data_tree]["download_url"], self.selected_folder, self.update_progress,self.update_extraction))
+					self.download_thread.daemon = True
 					self.download_thread.start()
 					self.downloading = True
 
@@ -459,6 +479,7 @@ class Launcher():
 			self.text_x = (screen.get_width() - self.downloading_text.get_width()) // 2
 			self.text_y = pos_y - (self.downloading_text.get_height() + 10)
 			screen.blit(self.downloading_text, (self.text_x, self.text_y))
+			pygame.display.flip()
 
 
 		if self.extraction_progress > 0:
@@ -480,7 +501,8 @@ class Launcher():
 			self.text_y = pos_y - (self.extraction_text.get_height() + 10)
 			screen.blit(self.extraction_text, (self.text_x, self.text_y))
 			pygame.display.flip()
-
+		self.save_app_data(data_tree)
+	def save_app_data(self,data_tree):
 		if self.downloaded and self.extracted:
 			app_data[data_tree]["downloaded"] = True
 			app_data[data_tree]["path"] = f"{self.selected_folder}/{data[data_tree]['folder_name']}/{data[data_tree]['file_name']}"
@@ -504,6 +526,7 @@ class Launcher():
 		if app_data[data_tree]["downloaded"] == True and app_data[data_tree]["version"] != data[data_tree]["version"] and self.downloading == False:
 			if self.update_button.draw():
 				self.update_thread = threading.Thread(target=download_and_extract_zip, args=(data[data_tree]["update_url"],app_data[data_tree]["update_path"], self.update_progress,self.update_extraction))
+				self.update_thread.daemon = True
 				self.update_thread.start()
 				self.downloading = True
 				self.selected_folder = app_data[data_tree]["update_path"]
@@ -521,14 +544,79 @@ class Launcher():
 		if not os.path.exists(path):
 			self.reset_data(data_tree)
 
+	def all_apps_func(self):
+		if not self.show_all and self.transition==False:
+			if self.games_btn.draw():
+				self.show_all = True
+			self.games_btn.hover("All Games","right",20)
+		if self.show_all and self.transition:				
+			if self.close_button.draw():
+				self.show_all = False
+			self.close_button.hover("Close Menu","right",20)
+
 	def template(self,data_tree):
+		self.header(data_tree)
 		self.sidebar()
 		self.draw_glass_sidebar()
 		self.sidebar_buttons()
+		self.all_apps_func()
 		self.download_func(data_tree)
 		self.update_func(data_tree)
 		self.launch_func(data_tree)
 		self.check_if_game_exists(data_tree)
+	def manage(self):
+		screen.fill("white")
+		self.header("Mange")
+		self.manage_icons = []
+		for i in range(3):
+			img = pygame.transform.scale(pygame.image.load(f"assets/icons/{i}.png"),(100,100)).convert_alpha()
+			self.manage_icons.append(img)
+
+		# Set dynamic y-position for each icon
+		icon_spacing = 150  # Space between icons
+		start_y = 100  # Starting y position
+		locate_game_button_list = []
+		uninstall_game_button_list = []
+
+		for i in range(len(self.manage_icons)):
+			pos_y = start_y + i * icon_spacing  # Calculate the y-position
+			screen.blit(self.manage_icons[i], (100, pos_y))
+			locate_game_button_list.append(Button(screen,300,50,screen_width - 400,pos_y + (100-50)//2,"Locate Game","darkgray","cyan","black"))
+			uninstall_game_button_list.append(Button(screen,300,50,screen_width - 400,pos_y + (100-50)//2,"Uninstall Game","darkgray","cyan","black"))
+
+		if app_data["interstellar pirates"]["downloaded"]:
+			if uninstall_game_button_list[0].draw():
+				pass 
+		else:
+			if locate_game_button_list[0].draw():
+				pass
+
+
+		if app_data["fruit delivery"]["downloaded"]:
+			self.check_if_game_exists("fruit delivery")
+			if uninstall_game_button_list[1].draw():
+				open_file_explorer(app_data["fruit delivery"]["update_path"].replace("/","\\"))
+		else:
+			if locate_game_button_list[1].draw():
+				self.selected_folder = select_folder()
+				if self.selected_folder:
+					path = f"{self.selected_folder}/{data["fruit delivery"]["folder_name"]}/{data["fruit delivery"]["file_name"]}"
+					print(path)
+					if os.path.exists(path):
+						self.downloaded = True 
+						self.extracted = True 
+						self.save_app_data("fruit delivery")
+						self.state = State.FRUIT_DELIVERY
+					else:
+						self.state = State.FRUIT_DELIVERY
+
+		if app_data["headball football"]["downloaded"]:
+			if uninstall_game_button_list[2].draw():
+				pass
+		else:
+			if locate_game_button_list[2].draw():
+				pass
+
 
 	def run(self):
 		while self.running:
@@ -553,18 +641,13 @@ class Launcher():
 			elif self.state == State.HEADBALL_FOOTBALL:
 				screen.blit(self.bg_list[1],(0,0))
 				self.template("headball football")
+			elif self.state == State.MANAGE:
+				self.manage()
 
 
 					
 
-			if not self.show_all and self.transition==False:
-				if self.games_btn.draw():
-					self.show_all = True
-				self.games_btn.hover("All Games","right",20)
-			if self.show_all and self.transition:				
-				if self.close_button.draw():
-					self.show_all = False
-				self.close_button.hover("Close Menu","right",20)
+			
 
 
 
