@@ -564,58 +564,47 @@ class Launcher():
 		self.update_func(data_tree)
 		self.launch_func(data_tree)
 		self.check_if_game_exists(data_tree)
-	def manage(self):
-		screen.fill("white")
-		self.header("Mange")
+
+	def manage(self,data_tree,index,state):	
 		self.manage_icons = []
 		for i in range(3):
 			img = pygame.transform.scale(pygame.image.load(f"assets/icons/{i}.png"),(100,100)).convert_alpha()
 			self.manage_icons.append(img)
 
-		# Set dynamic y-position for each icon
-		icon_spacing = 150  # Space between icons
-		start_y = 100  # Starting y position
+
+		icon_spacing = 150  
+		start_y = 100  
 		locate_game_button_list = []
 		uninstall_game_button_list = []
 
 		for i in range(len(self.manage_icons)):
-			pos_y = start_y + i * icon_spacing  # Calculate the y-position
+			pos_y = start_y + i * icon_spacing  
 			screen.blit(self.manage_icons[i], (100, pos_y))
 			locate_game_button_list.append(Button(screen,300,50,screen_width - 400,pos_y + (100-50)//2,"Locate Game","darkgray","cyan","black"))
-			uninstall_game_button_list.append(Button(screen,300,50,screen_width - 400,pos_y + (100-50)//2,"Uninstall Game","darkgray","cyan","black"))
+			uninstall_game_button_list.append(Button(screen,300,50,screen_width - 400,pos_y + (100-50)//2,"Uninstall Game","darkgray","cyan","black"))	
 
-		if app_data["interstellar pirates"]["downloaded"]:
-			if uninstall_game_button_list[0].draw():
-				pass 
+		if app_data[data_tree]["downloaded"]:
+			self.check_if_game_exists(data_tree)
+			if uninstall_game_button_list[index].draw():
+				open_file_explorer(app_data[data_tree]["update_path"].replace("/","\\"))
 		else:
-			if locate_game_button_list[0].draw():
-				pass
-
-
-		if app_data["fruit delivery"]["downloaded"]:
-			self.check_if_game_exists("fruit delivery")
-			if uninstall_game_button_list[1].draw():
-				open_file_explorer(app_data["fruit delivery"]["update_path"].replace("/","\\"))
-		else:
-			if locate_game_button_list[1].draw():
+			if locate_game_button_list[index].draw():
 				self.selected_folder = select_folder()
 				if self.selected_folder:
-					path = f"{self.selected_folder}/{data["fruit delivery"]["folder_name"]}/{data["fruit delivery"]["file_name"]}"
-					print(path)
+					path = f"{self.selected_folder}/{data[data_tree]["folder_name"]}/{data[data_tree]["file_name"]}"
 					if os.path.exists(path):
 						self.downloaded = True 
 						self.extracted = True 
-						self.save_app_data("fruit delivery")
-						self.state = State.FRUIT_DELIVERY
+						self.save_app_data(data_tree)
+						self.state = state
 					else:
-						self.state = State.FRUIT_DELIVERY
-
-		if app_data["headball football"]["downloaded"]:
-			if uninstall_game_button_list[2].draw():
-				pass
-		else:
-			if locate_game_button_list[2].draw():
-				pass
+						self.state = state
+	def manage_func(self):		
+		screen.fill("white")
+		self.header("Mange")
+		self.manage("interstellar pirates",0,State.INTERSTELLAR_PIRATE)
+		self.manage("fruit delivery",1,State.FRUIT_DELIVERY)
+		self.manage("headball football",2,State.HEADBALL_FOOTBALL)
 
 
 	def run(self):
@@ -642,7 +631,7 @@ class Launcher():
 				screen.blit(self.bg_list[1],(0,0))
 				self.template("headball football")
 			elif self.state == State.MANAGE:
-				self.manage()
+				self.manage_func()
 
 
 					
