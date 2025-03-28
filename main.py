@@ -67,6 +67,9 @@ except requests.exceptions.RequestException as e:
 
 
 
+
+
+
 class State(Enum):
 	INTERSTELLAR_PIRATE = auto()
 	FRUIT_DELIVERY = auto()
@@ -353,6 +356,7 @@ class Launcher():
 		self.update_button = Button(screen,200,50,screen_width - 210,screen_height - 60,"Update","white","#00ff79","black")
 		self.quit_button = Button(screen,50,50,screen_width - 60 ,10,"x","white","#00ff79","black")
 		self.settings_button = Button(screen,50,50,screen_width - 60 ,110,"s","white","#00ff79","black")
+		self.back_btn = Button(screen,100,30,10,screen_height - 40 , "Back","red","yellow","black",20 )  
 
 		#DOWNLOAD VARS
 		self.selected_folder = None
@@ -362,9 +366,11 @@ class Launcher():
 		self.extraction_progress = 0
 		self.extracted = False
 		self.extracting = False
+
+		self.slide_list = []
 	def header(self,data_tree):
 		header_font = pygame.font.Font("assets/font/Logo.ttf", 18)
-		header_text = header_font.render(f"{data_tree.replace(" ","    ")}",True,"black")
+		header_text = header_font.render(f'{data_tree.replace(" ","    ")}',True,"black")
 		header_text_width = header_text.get_width()
 		header_text_height = header_text.get_height()
 		header_pos_x = (screen_width - header_text_width)//2
@@ -414,6 +420,7 @@ class Launcher():
 			self.running = False
 		self.quit_button.hover("Quit","left",20)
 		if self.settings_button.draw():
+			self.previous_state = self.state
 			self.state = State.MANAGE
 		self.settings_button.hover("Settings","left",20)
 
@@ -447,6 +454,7 @@ class Launcher():
 			self.extracted = True
 			self.extraction_progress = 0
 		sleep(0.05)
+
 
 	def download_func(self,data_tree):
 		if app_data[data_tree]["downloaded"] == False and self.downloading == False:
@@ -554,12 +562,16 @@ class Launcher():
 				self.show_all = False
 			self.close_button.hover("Close Menu","right",20)
 
+	def slides(self):
+		pass
+
 	def template(self,data_tree):
 		self.header(data_tree)
 		self.sidebar()
 		self.draw_glass_sidebar()
 		self.sidebar_buttons()
 		self.all_apps_func()
+		self.slides()
 		self.download_func(data_tree)
 		self.update_func(data_tree)
 		self.launch_func(data_tree)
@@ -576,6 +588,7 @@ class Launcher():
 		start_y = 100  
 		locate_game_button_list = []
 		uninstall_game_button_list = []
+		      
 
 		for i in range(len(self.manage_icons)):
 			pos_y = start_y + i * icon_spacing  
@@ -599,12 +612,15 @@ class Launcher():
 						self.state = state
 					else:
 						self.state = state
+		if self.back_btn.draw():
+			self.state = self.previous_state
 	def manage_func(self):		
 		screen.fill("white")
 		self.header("Mange")
 		self.manage("interstellar pirates",0,State.INTERSTELLAR_PIRATE)
 		self.manage("fruit delivery",1,State.FRUIT_DELIVERY)
 		self.manage("headball football",2,State.HEADBALL_FOOTBALL)
+
 
 
 	def run(self):
