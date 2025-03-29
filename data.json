@@ -7,11 +7,11 @@
         "downloaded": true
     },
     "interstellar pirates": {
-        "version": 0,
-        "path": "",
-        "update_path": "",
-        "uninstall_path": "",
-        "downloaded": false
+        "version": 1.0,
+        "path": "D:/Testing downloads/Interstellar Pirates/Interstellar Pirates.exe",
+        "update_path": "D:/Testing downloads",
+        "uninstall_path": "D:/Testing downloads/Interstellar Pirates",
+        "downloaded": true
     },
     "headball football": {
         "version": 0,

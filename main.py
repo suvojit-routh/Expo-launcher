@@ -50,7 +50,7 @@ def save_data():
 info = pygame.display.Info()  
 screen_width = info.current_w
 screen_height = info.current_h
-screen = pygame.display.set_mode((screen_width,screen_height))
+screen = pygame.display.set_mode((screen_width,screen_height), pygame.DOUBLEBUF)
 pygame.display.set_caption("Expo Launcher")
 clock = pygame.time.Clock()
 FPS = 60
@@ -268,8 +268,6 @@ def download_and_extract_zip(url, extract_to, progress_callback=None,extraction_
                             progress = (downloaded / total_size) * 100 if total_size > 0 else 0
                             progress_callback(progress)
 
-                        # Ensure Pygame events are processed
-                            pygame.display.flip()
 
                 # Extract the downloaded zip file
                 with zipfile.ZipFile('temp.zip', 'r') as zip_ref:
@@ -283,9 +281,7 @@ def download_and_extract_zip(url, extract_to, progress_callback=None,extraction_
                         if extraction_callback:
                             extraction_progress = (index / total_files) * 100
                             extraction_callback(extraction_progress)
-                        
-                        # Ensure Pygame events are processed
-                            pygame.display.flip()
+
 
                 os.remove('temp.zip')  # Clean up temp file
                 print("Download and extraction complete!")
@@ -447,13 +443,13 @@ class Launcher():
 			self.downloaded = True
 			self.download_progress = 0
 			self.extracting = True
-		sleep(0.05)
+
 	def update_extraction(self, extract):
 		self.extraction_progress = extract
 		if int(self.extraction_progress) >= 100:
 			self.extracted = True
 			self.extraction_progress = 0
-		sleep(0.05)
+
 
 
 	def download_func(self,data_tree):
@@ -487,7 +483,7 @@ class Launcher():
 			self.text_x = (screen.get_width() - self.downloading_text.get_width()) // 2
 			self.text_y = pos_y - (self.downloading_text.get_height() + 10)
 			screen.blit(self.downloading_text, (self.text_x, self.text_y))
-			pygame.display.flip()
+			
 
 
 		if self.extraction_progress > 0:
@@ -508,7 +504,7 @@ class Launcher():
 			self.text_x = (screen.get_width() - self.extraction_text.get_width()) // 2
 			self.text_y = pos_y - (self.extraction_text.get_height() + 10)
 			screen.blit(self.extraction_text, (self.text_x, self.text_y))
-			pygame.display.flip()
+			
 		self.save_app_data(data_tree)
 	def save_app_data(self,data_tree):
 		if self.downloaded and self.extracted:
