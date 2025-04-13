@@ -19,5 +19,9 @@
 		"update_url" : "https://www.dropbox.com/scl/fi/9stakobrls0n4gd5pzwri/Headball-Football.zip?rlkey=2c1z1dw3vi9krdb7n47f4f0c8&st=axus59v2&dl=1",
 		"file_name" : "Headball Football.exe",
 		"folder_name" : "Headball Football"
+	},
+	"launcher" : {
+		"version" : 1.0,
+		"download_url" : "https://www.dropbox.com/scl/fi/9stakobrls0n4gd5pzwri/Headball-Football.zip?rlkey=2c1z1dw3vi9krdb7n47f4f0c8&st=axus59v2&dl=1"
 	}
 }

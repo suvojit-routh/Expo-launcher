@@ -35,6 +35,9 @@ if not os.path.exists("data.json"):
     				"update_path" : "",
     				"uninstall_path" : "",
     				"downloaded" : False
+    },
+    "launcher" : {
+    "version" : 1.0
     }
     }
     with open("data.json", 'w') as file:
@@ -376,6 +379,18 @@ class Launcher():
 		pygame.draw.rect(screen,"black",[header_pos_x - gap,header_pos_y -gap,header_text_width + gap*2,header_text_height+gap*2],2,4)
 		screen.blit(header_text,(header_pos_x,header_pos_y))
 
+	def footer(self,text):
+		footer_font = pygame.font.Font("assets/font/copperplate.ttf", 28)
+		footer_text = footer_font.render(f"{text}",True,"black")
+		footer_text_width = footer_text.get_width()
+		footer_text_height = footer_text.get_height()
+		footer_x = (screen_width - footer_text_width)//2
+		footer_y = (screen_height - footer_text_height) - 20
+		gap = 4
+		pygame.draw.rect(screen,"white",[footer_x - gap,footer_y - gap ,footer_text_width + gap*2,footer_text_height+gap*2],0,4)
+		pygame.draw.rect(screen,"black",[footer_x - gap,footer_y - gap ,footer_text_width + gap*2,footer_text_height+gap*2],2,4)
+		screen.blit(footer_text,(footer_x,footer_y))
+
 	def draw_glass_sidebar(self):
 		glass_surface = pygame.Surface((self.sidebar_width, screen_height), pygame.SRCALPHA)
 		glass_surface.fill((255, 255, 255, 20))
@@ -635,6 +650,8 @@ class Launcher():
 				background_group.draw(screen)
 				background_group.update()				
 				self.template("interstellar pirates")
+				if not self.downloading:
+				    self.footer("Can u survive and save the galaxy from destruction")
 			elif self.state == State.FRUIT_DELIVERY:
 				screen.blit(self.bg_list[0],(0,0))
 				self.template("fruit delivery")
